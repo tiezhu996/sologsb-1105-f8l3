@@ -51,6 +51,15 @@ export const usePlaceStore = defineStore('place', () => {
     currentPair.value = pairs.value.find((pair) => pair.id === id) ?? (await db.placePairs.get(id)) ?? null
   }
 
+  /** 离线合并写入后从 IndexedDB 重新装载缓存。 */
+  async function reloadFromDb(): Promise<void> {
+    pairs.value = await db.placePairs.toArray()
+    if (currentPair.value) {
+      currentPair.value =
+        pairs.value.find((pair) => pair.id === currentPair.value?.id) ?? currentPair.value
+    }
+  }
+
   function getPairsForSheet(sheetId: string): PlacePair[] {
     return pairs.value.filter((pair) => pair.sheetId === sheetId)
   }
@@ -78,6 +87,7 @@ export const usePlaceStore = defineStore('place', () => {
     init,
     addPair,
     loadPair,
+    reloadFromDb,
     getPairsForSheet,
     setMatchedPairIds,
     resetFilters,

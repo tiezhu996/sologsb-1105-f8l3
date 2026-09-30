@@ -3,6 +3,8 @@ export type Certainty = '确定' | '存疑' | '待考'
 
 export interface PlacePair {
   id: string
+  /** 跨馆稳定身份，说明同 Sheet.sourceKey。 */
+  sourceKey?: string
   sheetId: string
   oldName: string
   newName: string

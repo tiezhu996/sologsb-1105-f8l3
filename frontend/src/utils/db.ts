@@ -3,6 +3,7 @@ import type { NameHistory } from '../types/history'
 import type { PlacePair } from '../types/placePair'
 import type { ScanItem } from '../types/scan'
 import type { Sheet } from '../types/sheet'
+import type { SyncConflict, SyncLedgerEntry, SyncPackageRecord } from '../types/sync'
 
 const sheets: Sheet[] = [
   {
@@ -381,6 +382,12 @@ class GboldmapDatabase extends Dexie {
   scans!: Table<ScanItem, string>
   placePairs!: Table<PlacePair, string>
   histories!: Table<NameHistory, string>
+  /** 离线校勘包登记（原包文本与处理状态整包保留）。 */
+  syncPackages!: Table<SyncPackageRecord, string>
+  /** 待处理区：冲突项与馆员补证说明，离开页面再回来仍在。 */
+  syncConflicts!: Table<SyncConflict, string>
+  /** 幂等台账：每个包条目至多记一行，重试不会多出记录。 */
+  syncLedger!: Table<SyncLedgerEntry, string>
 
   constructor() {
     super('gboldmap-db')
@@ -408,10 +415,68 @@ class GboldmapDatabase extends Dexie {
           })
       })
 
+    // 离线校勘合并：业务表加 sourceKey 索引，另建三包合并仓库。
+    // 升级时给首版种子记录回填跨馆 sourceKey，手工新建的 UUID 记录保持无 sourceKey。
+    this.version(3)
+      .stores({
+        sheets: 'id, code, sourceKey, year, scale, status, series',
+        scans: 'id, sheetId, sourceKey, importedAt, quality',
+        placePairs: 'id, sheetId, sourceKey, oldName, newName, placeType, certainty',
+        histories: 'id, placePairId, period, changeType',
+        syncPackages: 'packageId, state, updatedAt',
+        syncConflicts: 'id, packageId, status, kind, sourceKey',
+        syncLedger: 'key, packageId, kind, sourceKey, recordId',
+      })
+      .upgrade(async (transaction) => {
+        // 给首版种子记录补登跨馆 sourceKey（手工 createId 生成的 UUID 记录不动）。
+        const seedSourceKey = (id: string, prefix: string): string | undefined => {
+          if (!id.startsWith(prefix) || /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/.test(id)) {
+            return undefined
+          }
+          return id.slice(prefix.length)
+        }
+        await transaction
+          .table<Sheet & { sourceKey?: string }, string>('sheets')
+          .toCollection()
+          .modify((row) => {
+            if (!row.sourceKey) {
+              const key = seedSourceKey(row.id, 'sheet-')
+              if (key) {
+                row.sourceKey = key
+              }
+            }
+          })
+        await transaction
+          .table<ScanItem & { sourceKey?: string }, string>('scans')
+          .toCollection()
+          .modify((row) => {
+            if (!row.sourceKey) {
+              const key = seedSourceKey(row.id, 'scan-')
+              if (key) {
+                row.sourceKey = key
+              }
+            }
+          })
+        await transaction
+          .table<PlacePair & { sourceKey?: string }, string>('placePairs')
+          .toCollection()
+          .modify((row) => {
+            if (!row.sourceKey) {
+              const key = seedSourceKey(row.id, 'place-')
+              if (key) {
+                row.sourceKey = key
+              }
+            }
+          })
+      })
+
     this.on('populate', async () => {
-      await this.sheets.bulkAdd(sheets)
-      await this.scans.bulkAdd(scans)
-      await this.placePairs.bulkAdd(placePairs)
+      // 首装（v3）直接为种子记录登记跨馆 sourceKey，与旧库升级回填的规则一致。
+      const withSourceKey = <T extends { id: string }>(rows: T[], prefix: string): Array<T & { sourceKey: string }> =>
+        rows.map((row) => ({ ...row, sourceKey: row.id.slice(prefix.length) }))
+      await this.sheets.bulkAdd(withSourceKey(sheets, 'sheet-'))
+      await this.scans.bulkAdd(withSourceKey(scans, 'scan-'))
+      await this.placePairs.bulkAdd(withSourceKey(placePairs, 'place-'))
       await this.histories.bulkAdd(histories)
     })
   }
@@ -424,6 +489,9 @@ export const db = new GboldmapDatabase()
  * 直接把 reactive 的 Proxy 交给 IndexedDB 会抛 DataCloneError。
  */
 export function plain<T>(value: T): T {
+  if (value === undefined) {
+    return undefined as T
+  }
   return JSON.parse(JSON.stringify(value)) as T
 }
 

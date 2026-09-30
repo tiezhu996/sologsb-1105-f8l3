@@ -61,6 +61,17 @@ export const useSheetStore = defineStore('sheet', () => {
     currentSheet.value = sheets.value.find((sheet) => sheet.id === id) ?? (await db.sheets.get(id)) ?? null
   }
 
+  /** 离线合并写入后从 IndexedDB 重新装载缓存（编目台仍是唯一写入方）。 */
+  async function reloadFromDb(): Promise<void> {
+    const [sheetRows, scanRows] = await Promise.all([db.sheets.toArray(), db.scans.toArray()])
+    sheets.value = sortByYear(sheetRows).reverse()
+    allScans.value = scanRows
+    if (currentSheet.value) {
+      currentSheet.value =
+        sheetRows.find((sheet) => sheet.id === currentSheet.value?.id) ?? currentSheet.value
+    }
+  }
+
   async function addScan(input: NewScanItem): Promise<ScanItem> {
     await init()
     const scan: ScanItem = { ...input, id: createId('scan') }
@@ -114,6 +125,7 @@ export const useSheetStore = defineStore('sheet', () => {
     init,
     addSheet,
     loadSheet,
+    reloadFromDb,
     addScan,
     setPrimaryScan,
     getSheetById,

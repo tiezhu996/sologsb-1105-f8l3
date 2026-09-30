@@ -3,6 +3,11 @@ export type SheetStatus = '待编' | '已编' | '待核'
 
 export interface Sheet {
   id: string
+  /**
+   * 跨馆稳定身份（离线校勘包带来）。手工新建的图幅没有该字段；
+   * 合并且入的记录保留原 sourceKey，作为后续包识别“同一条”的依据。
+   */
+  sourceKey?: string
   code: string
   title: string
   year: number
