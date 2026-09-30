@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import type { ScanItem } from '../types/scan'
 import type { Sheet } from '../types/sheet'
 import { createId, db, plain } from '../utils/db'
+import { reconcileContentMeta } from '../utils/contentMeta'
 import { sortByYear } from '../utils/scale'
 
 export type NewSheet = Omit<Sheet, 'id' | 'neighborCodes'> & {
@@ -51,7 +52,8 @@ export const useSheetStore = defineStore('sheet', () => {
       neighborCodes: input.neighborCodes ?? [],
     }
     await db.sheets.add(plain(sheet))
-    sheets.value = sortByYear([...sheets.value, sheet]).reverse()
+    await reconcileContentMeta()
+    sheets.value = sortByYear(await db.sheets.toArray()).reverse()
     currentSheet.value = sheet
     return sheet
   }
@@ -66,12 +68,10 @@ export const useSheetStore = defineStore('sheet', () => {
     const scan: ScanItem = { ...input, id: createId('scan') }
     if (scan.isPrimary) {
       await db.scans.where('sheetId').equals(scan.sheetId).modify({ isPrimary: false })
-      allScans.value = allScans.value.map((item) =>
-        item.sheetId === scan.sheetId ? { ...item, isPrimary: false } : item,
-      )
     }
     await db.scans.add(plain(scan))
-    allScans.value = [...allScans.value, scan]
+    await reconcileContentMeta()
+    allScans.value = await db.scans.toArray()
     return scan
   }
 
@@ -82,12 +82,18 @@ export const useSheetStore = defineStore('sheet', () => {
     }
     await db.scans.where('sheetId').equals(target.sheetId).modify({ isPrimary: false })
     await db.scans.update(scanId, { isPrimary: true })
-    allScans.value = allScans.value.map((scan) => {
-      if (scan.sheetId !== target.sheetId) {
-        return scan
-      }
-      return { ...scan, isPrimary: scan.id === scanId }
-    })
+    await reconcileContentMeta()
+    allScans.value = await db.scans.toArray()
+  }
+
+  /** 离线合并提交后从数据库重新装载，保证本台内存视图与唯一写入结果一致。 */
+  async function reloadAfterMerge(): Promise<void> {
+    const [sheetRows, scanRows] = await Promise.all([db.sheets.toArray(), db.scans.toArray()])
+    sheets.value = sortByYear(sheetRows).reverse()
+    allScans.value = scanRows
+    if (currentSheet.value) {
+      currentSheet.value = sheetRows.find((sheet) => sheet.id === currentSheet.value?.id) ?? null
+    }
   }
 
   function getSheetById(id: string): Sheet | undefined {
@@ -116,6 +122,7 @@ export const useSheetStore = defineStore('sheet', () => {
     loadSheet,
     addScan,
     setPrimaryScan,
+    reloadAfterMerge,
     getSheetById,
     getSheetByCode,
     getScansForSheet,

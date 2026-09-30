@@ -10,6 +10,8 @@ export interface PlacePair {
   placeType: PlaceType
   coordNote: string
   certainty: Certainty
+  /** 来源馆给出的稳定标识；本地自建记录可缺省。 */
+  sourceKey?: string
 }
 
 export const PLACE_TYPES: PlaceType[] = ['山川', '村镇', '衙署', '桥梁']

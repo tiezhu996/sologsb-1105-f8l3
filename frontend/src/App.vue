@@ -4,6 +4,7 @@ const navigation = [
   { label: '地名对照台', to: '/places', hint: '古今与异写' },
   { label: '沿革时间线', to: '/places/place-bp-yi-3-1/history', hint: '年代脉络' },
   { label: '邻接拼合预览', to: '/sheets/sheet-bp-yi-3/neighbors', hint: '四至关系' },
+  { label: '离线校勘合并', to: '/offline', hint: '断网来包收口' },
 ]
 </script>
 

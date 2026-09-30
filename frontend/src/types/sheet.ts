@@ -12,6 +12,8 @@ export interface Sheet {
   series: string
   neighborCodes: string[]
   status: SheetStatus
+  /** 来源馆给出的稳定标识；本地自建记录可缺省。 */
+  sourceKey?: string
 }
 
 export const SHEET_SCALES: SheetScale[] = ['1:5000', '1:50000']

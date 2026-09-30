@@ -12,6 +12,8 @@ export interface ScanItem {
   storageNote: string
   importedAt: string
   isPrimary: boolean
+  /** 来源馆给出的稳定标识；本地自建记录可缺省。 */
+  sourceKey?: string
 }
 
 export const COLOR_MODES: ColorMode[] = ['彩色', '黑白', '灰度']

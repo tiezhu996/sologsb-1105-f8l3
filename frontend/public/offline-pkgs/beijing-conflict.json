@@ -1,0 +1,69 @@
+{
+  "kind": "gboldmap-offline-correction",
+  "format": 1,
+  "manifest": {
+    "packageId": "pkg-bp-2026-09-01",
+    "origin": "北平市档案馆协作点",
+    "preparedAt": "2026-09-01T15:00:00.000Z",
+    "note": "据馆藏 1908 年修城档复核甲-3；若贵馆已改动，请补证后再并入。",
+    "counts": {
+      "sheets": 1,
+      "scans": 1,
+      "placePairs": 1
+    },
+    "packageHash": "1fa979d78f00ecfb9da81cfbac916bfb7bea23264480ec615131ca6321247828"
+  },
+  "sheets": [
+    {
+      "sourceKey": "sheet-bp-jia-3",
+      "code": "北平-甲-3",
+      "title": "正阳门至崇文门内外城街巷图",
+      "year": 1908,
+      "scale": "1:5000",
+      "projection": "三角测量 · 平面图",
+      "sheetSizeCm": "58 × 46 厘米",
+      "series": "京师实测图",
+      "neighborCodes": [
+        "北平-甲-2",
+        "北平-甲-4",
+        "北平-乙-3"
+      ],
+      "status": "已编",
+      "baseHash": "517f201275f183e3572f2f61fd3f78f886436e4576b5457cde6c55543f7b754b",
+      "payloadHash": "813409cbb4c806004b4ac8c3632ee0e8dbcc4cef8fb9e29250018baa434dd75f"
+    }
+  ],
+  "scans": [
+    {
+      "sourceKey": "scan-bp-jia-3-1",
+      "sheetCode": "北平-甲-3",
+      "fileName": "北平甲3_原图精修_600dpi.tif",
+      "resolutionDpi": 600,
+      "colorMode": "彩色",
+      "pieces": 5,
+      "quality": "清晰",
+      "storageNote": "协作馆数字库 BP-1907-03",
+      "importedAt": "2025-02-18T09:30:00.000Z",
+      "isPrimary": true,
+      "baseHash": "684f3e6fe51d1466a8aee07f87ae1910c212f686e1113469de1ad533ced7c3a9",
+      "payloadHash": "d782ff63ef62471fb96236c4a5e896432134fe4d1e32c111d93ca6b7bd32adb2"
+    }
+  ],
+  "placePairs": [
+    {
+      "sourceKey": "place-bp-jia-3-1",
+      "sheetCode": "北平-甲-3",
+      "oldName": "正阳门瓮城",
+      "newName": "正阳门城楼及箭楼",
+      "aliasList": [
+        "前门瓮城",
+        "正阳门月城"
+      ],
+      "placeType": "衙署",
+      "coordNote": "图幅中部偏南，瓮城与箭楼位置需与 1908 年修城档案互证。",
+      "certainty": "存疑",
+      "baseHash": "e23a9079f17b46aa4b57a43ba68bcf30d4633eef765c6f0cbba16fda184dff01",
+      "payloadHash": "b91b6b1af7c452f973ae795484dfa91fe33433c816c9d60b098ce73d8f3f8e85"
+    }
+  ]
+}

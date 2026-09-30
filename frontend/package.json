@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "samples": "node scripts/generate-sample-packages.mjs",
+    "test:offline": "esbuild scripts/offline-engine.test.mjs --bundle --platform=node --format=esm --outfile=scripts/.cache-engine.mjs && node scripts/.cache-engine.mjs && esbuild scripts/offline-db-fresh.test.mjs --bundle --platform=node --format=esm --outfile=scripts/.cache-fresh.mjs && node scripts/.cache-fresh.mjs && esbuild scripts/offline-db-upgrade.test.mjs --bundle --platform=node --format=esm --outfile=scripts/.cache-upgrade.mjs && node scripts/.cache-upgrade.mjs; status=$?; rm -f scripts/.cache-*.mjs; exit $status"
   },
   "dependencies": {
     "dexie": "^4.0.8",
@@ -17,6 +19,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.4",
+    "fake-indexeddb": "^6.2.5",
     "typescript": "^5.6.2",
     "vite": "^5.4.8",
     "vue-tsc": "^2.1.6"

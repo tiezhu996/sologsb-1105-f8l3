@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { Certainty, PlacePair, PlaceType } from '../types/placePair'
 import { createId, db, plain } from '../utils/db'
+import { reconcileContentMeta } from '../utils/contentMeta'
 
 export type NewPlacePair = Omit<PlacePair, 'id'>
 
@@ -41,7 +42,8 @@ export const usePlaceStore = defineStore('place', () => {
     await init()
     const pair: PlacePair = { ...input, id: createId('place') }
     await db.placePairs.add(plain(pair))
-    pairs.value = [...pairs.value, pair]
+    await reconcileContentMeta()
+    pairs.value = await db.placePairs.toArray()
     currentPair.value = pair
     return pair
   }
@@ -66,6 +68,11 @@ export const usePlaceStore = defineStore('place', () => {
     matchedPairIds.value = []
   }
 
+  /** 离线合并提交后从数据库重新装载地名对照。 */
+  async function reloadAfterMerge(): Promise<void> {
+    pairs.value = await db.placePairs.toArray()
+  }
+
   return {
     pairs,
     currentPair,
@@ -81,5 +88,6 @@ export const usePlaceStore = defineStore('place', () => {
     getPairsForSheet,
     setMatchedPairIds,
     resetFilters,
+    reloadAfterMerge,
   }
 })

@@ -1,0 +1,88 @@
+{
+  "kind": "gboldmap-offline-correction",
+  "format": 1,
+  "manifest": {
+    "packageId": "pkg-kf-2026-08-20",
+    "origin": "开封市地方志协作馆",
+    "preparedAt": "2026-08-20T08:30:00.000Z",
+    "note": "断网期间完成开封城西片区核校，含港口-2 新图幅一幅。",
+    "counts": {
+      "sheets": 2,
+      "scans": 1,
+      "placePairs": 1
+    },
+    "packageHash": "d0731e31fbaaafde254f1cb1ef93ebbe3e7eab5410627ab61d6d2292840a5069"
+  },
+  "sheets": [
+    {
+      "sourceKey": "sheet-kf-chengxi-1",
+      "code": "开封-城西-1",
+      "title": "大梁门至西门大街图（协作馆修订）",
+      "year": 1936,
+      "scale": "1:5000",
+      "projection": "三角测量 · 平面图",
+      "sheetSizeCm": "60 × 45 厘米",
+      "series": "河南省城实测图",
+      "neighborCodes": [
+        "开封-城西-2",
+        "开封-城中-1",
+        "开封-城北-1",
+        "开封-城南-1"
+      ],
+      "status": "已编",
+      "baseHash": "f9ded081e5ead0674e701028cdf2e3e640d30eb29bba25b2749804bfec797a89",
+      "payloadHash": "723e7f9cb88127012d2f6ed76aa41b19c8e4b26225d14b308d4c2fa2c2f09b7a"
+    },
+    {
+      "sourceKey": "kf-gangkou-2",
+      "code": "开封-港口-2",
+      "title": "汴河码头至东水门图",
+      "year": 1936,
+      "scale": "1:5000",
+      "projection": "三角测量 · 平面图",
+      "sheetSizeCm": "60 × 45 厘米",
+      "series": "河南省城实测图",
+      "neighborCodes": [
+        "开封-城西-1",
+        "开封-港口-1"
+      ],
+      "status": "待编",
+      "baseHash": "16e68f25ec70cdd37fa65cff973d3cbc0d760cb6ea0e14242be2e20e2f1c6c96",
+      "payloadHash": "16e68f25ec70cdd37fa65cff973d3cbc0d760cb6ea0e14242be2e20e2f1c6c96"
+    }
+  ],
+  "scans": [
+    {
+      "sourceKey": "scan-kf-gangkou-2-1",
+      "sheetCode": "开封-港口-2",
+      "fileName": "开封港口2_东水门_600dpi.tif",
+      "resolutionDpi": 600,
+      "colorMode": "彩色",
+      "pieces": 3,
+      "quality": "清晰",
+      "storageNote": "协作馆开封专柜 K-1936-02",
+      "importedAt": "2026-08-12T10:00:00.000Z",
+      "isPrimary": true,
+      "baseHash": "b699f441b3b6192110fe31d7e3432db333f7a7acbb24c43492975df02691fd93",
+      "payloadHash": "b699f441b3b6192110fe31d7e3432db333f7a7acbb24c43492975df02691fd93"
+    }
+  ],
+  "placePairs": [
+    {
+      "sourceKey": "place-kf-chengxi-1-2",
+      "sheetCode": "开封-城西-1",
+      "oldName": "州桥旧址",
+      "newName": "州桥遗址（考古发掘现场）",
+      "aliasList": [
+        "汴州桥",
+        "天汉桥",
+        "州桥"
+      ],
+      "placeType": "桥梁",
+      "coordNote": "御街与汴河故道交会处，1984 年钻探确认，2018 年发掘。",
+      "certainty": "确定",
+      "baseHash": "e3f6c3e5e31a5d27c3696f3ee778c1e97547f6221fd41fc50415e63e4a8c5462",
+      "payloadHash": "ac493970050a6f9c7c658b872002e400f085a39ce8012916efcf7f9eee75b9da"
+    }
+  ]
+}

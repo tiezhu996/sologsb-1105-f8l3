@@ -1,0 +1,17 @@
+[
+  {
+    "file": "kaifeng-fast-forward.json",
+    "title": "开封协作馆 · 可直接合并",
+    "description": "基线干净的推进包，含一幅新图幅与一条新增扫描件。"
+  },
+  {
+    "file": "beijing-conflict.json",
+    "title": "北平协作点 · 含本地修改冲突",
+    "description": "图幅、扫描件、地名各有一项与馆员后来改动冲突，需补证。"
+  },
+  {
+    "file": "broken-link.json",
+    "title": "来件不全 · 挂接校验失败",
+    "description": "扫描件引用了不存在的图幅号，整包被拦截。"
+  }
+]

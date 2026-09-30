@@ -4,6 +4,7 @@ import SheetDetail from '../pages/SheetDetail.vue'
 import PlaceBoard from '../pages/PlaceBoard.vue'
 import HistoryTimeline from '../pages/HistoryTimeline.vue'
 import NeighborView from '../pages/NeighborView.vue'
+import OfflineMerge from '../pages/OfflineMerge.vue'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/sheets' },
@@ -12,6 +13,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/places', name: 'places', component: PlaceBoard },
   { path: '/places/:id/history', name: 'place-history', component: HistoryTimeline },
   { path: '/sheets/:id/neighbors', name: 'sheet-neighbors', component: NeighborView },
+  { path: '/offline', name: 'offline-merge', component: OfflineMerge },
   { path: '/:pathMatch(.*)*', redirect: '/sheets' },
 ]
 

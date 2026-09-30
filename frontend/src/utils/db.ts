@@ -3,6 +3,14 @@ import type { NameHistory } from '../types/history'
 import type { PlacePair } from '../types/placePair'
 import type { ScanItem } from '../types/scan'
 import type { Sheet } from '../types/sheet'
+import {
+  canonicalOfLocalPlace,
+  canonicalOfLocalScan,
+  canonicalOfLocalSheet,
+  type ConflictRecord,
+  type EvaluatedItem,
+} from './offlineMerge'
+import { hashCanonical } from './hash'
 
 const sheets: Sheet[] = [
   {
@@ -376,11 +384,67 @@ const histories: NameHistory[] = [
   { id: 'hist-24', placePairId: 'place-kf-chengxi-1-2', period: '北宋天圣年间', name: '州桥', changeType: '改名', sourceRef: '《东京梦华录》卷二', note: '御街跨桥通称州桥，天汉桥为正式桥名。' },
 ]
 
+/**
+ * 一条业务记录的来源血缘与内容散列。
+ * 散列始终按记录「当前」内容计算；离线合并据此判断本地是否在协作馆打包后改过。
+ */
+export interface ContentMeta {
+  /** `${table}:${localId}`，与业务表一一对应 */
+  key: string
+  table: 'sheets' | 'scans' | 'placePairs'
+  localId: string
+  sourceKey: string
+  origin: string
+  hash: string
+  mergedPackageId?: string
+  updatedAt: string
+}
+
+export type StagedPackageStatus =
+  | 'received'
+  | '校验异常'
+  | '待处理冲突'
+  | '可合并'
+  | '已合并'
+  | '已丢弃'
+
+export interface PackageLogEntry {
+  at: string
+  phase: '导入' | '校验' | '补证' | '写入' | '保留' | '移除'
+  message: string
+}
+
+/** 暂存在本地的离线包及其处理进度；页面离开再回来仍可继续。 */
+export interface StagedPackage {
+  packageId: string
+  origin: string
+  preparedAt: string
+  note?: string
+  fileName: string
+  status: StagedPackageStatus
+  rawPackage: unknown
+  receivedAt: string
+  updatedAt: string
+  /** 合并统计快照，供列表直接展示。 */
+  counts: { sheets: number; scans: number; placePairs: number }
+  errors: string[]
+  warnings: string[]
+  conflicts: ConflictRecord[]
+  /** 最近一次逐件评估：新增/更新/一致/冲突的明细。 */
+  items?: EvaluatedItem[]
+  /** 已并入但保留本地的 sourceKey（决定重试时哪些条目不重复写）。 */
+  handledSourceKeys?: string[]
+  mergedAt?: string
+  logs: PackageLogEntry[]
+}
+
 class GboldmapDatabase extends Dexie {
   sheets!: Table<Sheet, string>
   scans!: Table<ScanItem, string>
   placePairs!: Table<PlacePair, string>
   histories!: Table<NameHistory, string>
+  contentMeta!: Table<ContentMeta, string>
+  offlinePackages!: Table<StagedPackage, string>
 
   constructor() {
     super('gboldmap-db')
@@ -408,11 +472,105 @@ class GboldmapDatabase extends Dexie {
           })
       })
 
+    this.version(3)
+      .stores({
+        sheets: 'id, code, year, scale, status, series',
+        scans: 'id, sheetId, importedAt, quality',
+        placePairs: 'id, sheetId, oldName, newName, placeType, certainty',
+        histories: 'id, placePairId, period, changeType',
+        contentMeta: 'key, table, localId, sourceKey',
+        offlinePackages: 'packageId, status, origin, updatedAt',
+      })
+      .upgrade(async (transaction) => {
+        const now = new Date().toISOString()
+        const metaRows: ContentMeta[] = []
+        const sheetRows = await transaction.table<Sheet, string>('sheets').toArray()
+        const scanRows = await transaction.table<ScanItem, string>('scans').toArray()
+        const pairRows = await transaction.table<PlacePair, string>('placePairs').toArray()
+        const sheetCodeById = new Map(sheetRows.map((sheet) => [sheet.id, sheet.code]))
+
+        for (const sheet of sheetRows) {
+          metaRows.push({
+            key: `sheets:${sheet.id}`,
+            table: 'sheets',
+            localId: sheet.id,
+            // 升级前的本地记录没有外部来源：以本地 id 充当 sourceKey，
+            // 旧离线包仍按其包内 sourceKey 与此对齐（种子 id 与旧包一致）。
+            sourceKey: (sheet as Sheet & { sourceKey?: string }).sourceKey ?? sheet.id,
+            origin: 'local-seed',
+            hash: hashCanonical(canonicalOfLocalSheet(sheet)),
+            updatedAt: now,
+          })
+        }
+        for (const scan of scanRows) {
+          metaRows.push({
+            key: `scans:${scan.id}`,
+            table: 'scans',
+            localId: scan.id,
+            sourceKey: (scan as ScanItem & { sourceKey?: string }).sourceKey ?? scan.id,
+            origin: 'local-seed',
+            hash: hashCanonical(canonicalOfLocalScan(scan, sheetCodeById.get(scan.sheetId) ?? '')),
+            updatedAt: now,
+          })
+        }
+        for (const pair of pairRows) {
+          metaRows.push({
+            key: `placePairs:${pair.id}`,
+            table: 'placePairs',
+            localId: pair.id,
+            sourceKey: (pair as PlacePair & { sourceKey?: string }).sourceKey ?? pair.id,
+            origin: 'local-seed',
+            hash: hashCanonical(canonicalOfLocalPlace(pair, sheetCodeById.get(pair.sheetId) ?? '')),
+            updatedAt: now,
+          })
+        }
+        await transaction.table<ContentMeta, string>('contentMeta').bulkAdd(metaRows)
+      })
+
     this.on('populate', async () => {
       await this.sheets.bulkAdd(sheets)
       await this.scans.bulkAdd(scans)
       await this.placePairs.bulkAdd(placePairs)
       await this.histories.bulkAdd(histories)
+      // 全新建库时同样写出血缘散列，保证后续比对基线齐全。
+      const now = new Date().toISOString()
+      const metaRows: ContentMeta[] = []
+      for (const sheet of sheets) {
+        metaRows.push({
+          key: `sheets:${sheet.id}`,
+          table: 'sheets',
+          localId: sheet.id,
+          sourceKey: sheet.id,
+          origin: 'local-seed',
+          hash: hashCanonical(canonicalOfLocalSheet(sheet)),
+          updatedAt: now,
+        })
+      }
+      for (const scan of scans) {
+        const sheet = sheets.find((item) => item.id === scan.sheetId)
+        metaRows.push({
+          key: `scans:${scan.id}`,
+          table: 'scans',
+          localId: scan.id,
+          sourceKey: scan.id,
+          origin: 'local-seed',
+          hash: hashCanonical(canonicalOfLocalScan(scan, sheet?.code ?? '')),
+          updatedAt: now,
+        })
+      }
+      for (const pair of placePairs) {
+        const sheet = sheets.find((item) => item.id === pair.sheetId)
+        metaRows.push({
+          key: `placePairs:${pair.id}`,
+          table: 'placePairs',
+          localId: pair.id,
+          sourceKey: pair.id,
+          origin: 'local-seed',
+          hash: hashCanonical(canonicalOfLocalPlace(pair, sheet?.code ?? '')),
+          updatedAt: now,
+        })
+      }
+      await this.contentMeta.bulkAdd(metaRows)
     })
   }
 }

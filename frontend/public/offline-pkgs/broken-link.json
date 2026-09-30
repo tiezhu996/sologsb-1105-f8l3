@@ -1,0 +1,51 @@
+{
+  "kind": "gboldmap-offline-correction",
+  "format": 1,
+  "manifest": {
+    "packageId": "pkg-bad-link-2026-09-12",
+    "origin": "某协作馆（来件不全）",
+    "preparedAt": "2026-09-12T12:00:00.000Z",
+    "note": "扫描件挂接图幅号在随包图幅清单中缺失，用于演示校验拦截。",
+    "counts": {
+      "sheets": 1,
+      "scans": 1,
+      "placePairs": 0
+    },
+    "packageHash": "8f88ba1df3d89dbba5d98ee999c9ecc4f1a135aa9b5464100a1244cf26ef4651"
+  },
+  "sheets": [
+    {
+      "sourceKey": "sheet-baoding-north-7",
+      "code": "保定-北-7",
+      "title": "清苑北郊村落图",
+      "year": 1921,
+      "scale": "1:50000",
+      "projection": "多圆锥投影",
+      "sheetSizeCm": "50 × 42 厘米",
+      "series": "直隶五万分一图",
+      "neighborCodes": [
+        "保定-中-4"
+      ],
+      "status": "待核",
+      "baseHash": "77f4e6cd24e51421e62d32b6bb21de9bf6822797ebe8c1a9aaf435a5c0d10b88",
+      "payloadHash": "77f4e6cd24e51421e62d32b6bb21de9bf6822797ebe8c1a9aaf435a5c0d10b88"
+    }
+  ],
+  "scans": [
+    {
+      "sourceKey": "scan-unknown-sheet-1",
+      "sheetCode": "张家口-甲-9",
+      "fileName": "张家口甲9_未知图幅_300dpi.jpg",
+      "resolutionDpi": 300,
+      "colorMode": "黑白",
+      "pieces": 1,
+      "quality": "偏淡",
+      "storageNote": "来源待查",
+      "importedAt": "2026-09-10T09:00:00.000Z",
+      "isPrimary": true,
+      "baseHash": "73f987f6fdf6545468e6b7b1df2d45d22f69414359b0dd0ebbe958976a2d24b1",
+      "payloadHash": "73f987f6fdf6545468e6b7b1df2d45d22f69414359b0dd0ebbe958976a2d24b1"
+    }
+  ],
+  "placePairs": []
+}

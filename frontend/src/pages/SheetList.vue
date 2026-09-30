@@ -96,9 +96,14 @@ onMounted(() => {
         <h1>图幅编目台</h1>
         <p>按测绘年代、比例尺与整理状态核点图幅，快速查看对照片目、地名数量及邻接缺编情况。</p>
       </div>
-      <el-button type="primary" size="large" data-testid="new-sheet" @click="showCreateForm = true">
-        新建图幅
-      </el-button>
+      <div class="page-heading__actions">
+        <router-link to="/offline" data-testid="link-offline">
+          <el-button size="large">离线校勘合并</el-button>
+        </router-link>
+        <el-button type="primary" size="large" data-testid="new-sheet" @click="showCreateForm = true">
+          新建图幅
+        </el-button>
+      </div>
     </div>
 
     <div class="metrics-strip">
